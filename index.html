@@ -1372,23 +1372,29 @@ async function syncLBFromCloud(){
 }
 
 /* ---- CODES: lokal sofort lesbar, Cloud im Hintergrund synchronisiert ---- */
-function saveCodes(list){
-  try{ localStorage.setItem(CODES_KEY,JSON.stringify(list)); }catch(e){}
-  if(cloudEnabled()){
-    setCloudStatus('☁️ Speichere…',null);
-    cloudPut(CLOUD_CONFIG.codesBinId,list).then(ok=>setCloudStatus(ok?'☁️ Synchronisiert':'⚠️ Cloud nicht erreichbar (lokal gespeichert)',ok));
-  }
+<script>
+// ... dein anderer Code ...
+
+async function adminDeleteCode(code){
+  if(!confirm(`Möchtest du den Code "${code}" wirklich aus der Cloud löschen?`)) return;
+  
+  // Lade die aktuellen Codes aus deiner Cloud
+  let list = cloudEnabled() ? await syncCodesFromCloud() : loadCodes();
+  
+  // Filtert den ausgewählten Code heraus
+  list = list.filter(c => c.code !== code);
+  
+  // Speichert die bereinigte Liste wieder in der Cloud ab
+  saveCodes(list); 
+  showToast(`🗑️ Code "${code}" gelöscht.`); 
+  
+  // Aktualisiert die Admin-Ansicht sofort
+  renderAdminCodeListFrom(list); 
+  broadcastCodes();
 }
-function loadCodes(){ try{ const r=localStorage.getItem(CODES_KEY); return r?JSON.parse(r):[]; }catch(e){return[];} }
-async function syncCodesFromCloud(){
-  if(!cloudEnabled())return loadCodes();
-  const cloud=await cloudGet(CLOUD_CONFIG.codesBinId);
-  if(Array.isArray(cloud)){
-    localStorage.setItem(CODES_KEY,JSON.stringify(cloud));
-    return cloud;
-  }
-  return loadCodes();
-}
+
+// ... dein anderer Code ...
+</script>
 
 /* =========================================================  STATE  ========================================================= */
 let state={
